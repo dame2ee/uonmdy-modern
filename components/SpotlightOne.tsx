@@ -13,119 +13,123 @@ export default function SpotlightOne() {
   const digits = String(visitorStats.all).split("");
 
   return (
-    <section className="border-b border-cream py-[30px]">
-      <div className="uon-container">
-        <div className="grid grid-cols-1 gap-x-[30px] gap-y-[30px] md:grid-cols-3">
-          {/* ---------- Latest News ---------- */}
-          <div>
-            <div className="mb-[15px] bg-accent px-[10px] py-[4px] text-[12px] font-bold text-white">
-              <a className="text-white hover:text-white">
-                More News &gt;&gt;
-              </a>{" "}
-              {newsPagination.map((label) => (
-                <a key={label} className="text-white hover:text-white">
-                  {label}&nbsp;
-                </a>
-              ))}
-            </div>
-
-            <h3 className="uon-module-title">Latest News</h3>
-
-            <div className="space-y-[15px]">
-              {latestNews.map((news) => (
-                <div key={news.title} className="flex gap-[12px]">
-                  <a className="shrink-0">
-                    <Image
-                      src={news.image}
-                      alt={news.title}
-                      width={130}
-                      height={77}
-                      className="h-[77px] w-[130px] object-cover"
-                    />
-                  </a>
-                  <div>
-                    <a
-                      className="block text-[13px] leading-[1.45] font-bold text-[#205f93]"
-                    >
-                      {news.title}
-                    </a>
-                    <a
-                      className="mt-[4px] inline-block text-[12px] text-[#666666] hover:text-[#205f93]"
-                    >
-                      More detail
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
+    <section className="uon-container py-8">
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* ---------- Latest News ---------- */}
+        <div className="uon-card flex flex-col p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="uon-section-title text-base">Latest News</h2>
+            <a className="text-[12px] font-semibold text-brand hover:text-navy">More news &rarr;</a>
           </div>
 
-          {/* ---------- Rectors ---------- */}
-          <div>
-            <h3 className="uon-module-title">Rectors</h3>
-
-            <ul className="list-none p-0">
-              {rectors.map((rector) => (
-                <li
-                  key={rector.name}
-                  className="flex min-h-[50px] items-center border-b border-cream py-[10px]"
-                >
+          <div className="mt-4 space-y-4">
+            {latestNews.map((news) => (
+              <article key={news.title} className="group flex gap-3">
+                <a className="relative h-[74px] w-[110px] shrink-0 overflow-hidden rounded-xl">
                   <Image
-                    src={rector.image}
-                    alt={rector.name}
-                    width={58}
-                    height={58}
-                    className="mr-[10px] h-[58px] w-[58px] shrink-0 rounded-[2px] border border-[#dddddd] bg-[#f7f7f7] p-[2px] object-cover"
+                    src={news.image}
+                    alt={news.title}
+                    fill
+                    sizes="110px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <span className="text-[15px] font-bold text-[#4a4a4a]">
-                    {rector.name} <span className="font-normal">{rector.period}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
+                </a>
+                <div className="min-w-0">
+                  <a className="line-clamp-3 text-[13px] font-semibold leading-snug text-ink hover:text-brand">
+                    {news.title}
+                  </a>
+                  <a className="mt-1 inline-block text-[12px] font-medium text-muted hover:text-brand">
+                    Read more
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
 
-          {/* ---------- Most Read + Visitors ---------- */}
-          <div>
-            <h3 className="uon-module-title">Most Read &amp; Viewed</h3>
-            <ul className="uon-bullet-list mb-[30px] list-none p-0">
+          <div className="mt-5 flex flex-wrap items-center gap-1.5 border-t border-line pt-4">
+            {newsPagination.map((label, i) => (
+              <a
+                key={label}
+                className={[
+                  "flex h-7 min-w-7 items-center justify-center rounded-lg px-2 text-[12px] font-semibold transition-colors",
+                  i === newsPagination.length - 1
+                    ? "bg-brand text-white hover:bg-navy"
+                    : "bg-mist text-body ring-1 ring-line hover:bg-brand-soft hover:text-brand",
+                ].join(" ")}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* ---------- Rectors ---------- */}
+        <div className="uon-card p-5">
+          <h2 className="uon-section-title text-base">Rectors</h2>
+          <ul className="mt-4 space-y-1">
+            {rectors.map((rector) => (
+              <li
+                key={rector.name}
+                className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-mist"
+              >
+                <Image
+                  src={rector.image}
+                  alt={rector.name}
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 shrink-0 rounded-full border border-line object-cover"
+                />
+                <span className="text-[13.5px] font-semibold text-ink">
+                  {rector.name}
+                  <span className="block text-[12px] font-normal text-muted">{rector.period}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* ---------- Most Read + Visitors ---------- */}
+        <div className="flex flex-col gap-6">
+          <div className="uon-card p-5">
+            <h2 className="uon-section-title text-base">Most Read &amp; Viewed</h2>
+            <ul className="mt-4 space-y-1">
               {mostRead.map((label) => (
-                <li key={label} className="py-[4px]">
-                  <a className="text-[13px]">
+                <li key={label}>
+                  <a className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] text-body transition-colors hover:bg-brand-soft hover:text-brand">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
                     {label}
                   </a>
                 </li>
               ))}
             </ul>
+          </div>
 
-            <h3 className="uon-module-title">Visitors</h3>
-            <div className="mx-auto w-[260px] p-[5px] text-center">
-              <div className="mb-[5px]">
-                {digits.map((d, i) => (
-                  <span key={i} className="uon-digit" title="Vinaora Visitors Counter">
-                    {d}
-                  </span>
-                ))}
-              </div>
+          <div className="uon-card p-5">
+            <h2 className="uon-section-title mb-4 text-base">Visitors</h2>
 
-              <div className="mt-[10px]">
-                {visitorRows.map((row) => (
-                  <div key={row.label} className="flex h-[24px] items-center justify-between">
-                    <span className="text-[12px] text-[#666666]">{row.label}</span>
-                    <span className="text-[12px] text-[#666666]">{row.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              <hr className="my-[5px] border-cream" />
-              <div className="mb-[5px] text-[12px] text-[#666666]">
-                Your IP: {visitorStats.ip}
-              </div>
-              <div className="text-[12px] text-[#666666]">{visitorStats.datetime}</div>
-              <div className="mt-[5px] text-[12px]">
-                <span className="text-[#666666]">Visitors Counter</span>
-              </div>
+            <div className="flex justify-center">
+              {digits.map((digit, i) => (
+                <span key={i} className="uon-digit" title="Vinaora Visitors Counter">
+                  {digit}
+                </span>
+              ))}
             </div>
+
+            <dl className="mt-4 divide-y divide-line text-[12.5px]">
+              {visitorRows.map((row) => (
+                <div key={row.label} className="flex items-center justify-between py-1.5">
+                  <dt className="text-muted">{row.label}</dt>
+                  <dd className="font-semibold tabular-nums text-ink">
+                    {row.value.toLocaleString()}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <p className="mt-3 text-[12px] text-muted">
+              Your IP: <span className="font-medium text-body">{visitorStats.ip}</span>
+            </p>
+            <p className="text-[12px] text-muted">{visitorStats.datetime}</p>
           </div>
         </div>
       </div>

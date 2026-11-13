@@ -14,90 +14,116 @@ export default function HeroSlider() {
 
   useEffect(() => {
     if (!playing) return;
-    const id = window.setInterval(() => go(1), 5000);
+    const id = window.setInterval(() => go(1), 6000);
     return () => window.clearInterval(id);
   }, [playing, go]);
 
+  const current = slides[index];
+
   return (
-    <div className="bg-white">
-      <div className="uon-container">
-        <div className="relative overflow-hidden">
-          {/* Slides */}
-          <div className="relative h-[200px] sm:h-[300px] md:h-[400px]">
-            {slides.map((slide, i) => (
-              <div
-                key={slide.image}
+    <section className="uon-container pt-6 pb-2 sm:pt-8">
+      <div className="relative overflow-hidden rounded-3xl shadow-[var(--shadow-pop)] ring-1 ring-black/5">
+        <div className="relative h-[300px] sm:h-[420px] lg:h-[520px]">
+          {slides.map((slide, i) => (
+            <div
+              key={slide.image}
+              className={[
+                "absolute inset-0 transition-opacity duration-1000 ease-out",
+                i === index ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+              aria-hidden={i !== index}
+            >
+              <Image
+                src={slide.image}
+                alt={slide.title}
+                fill
+                priority={i === 0}
+                sizes="(max-width: 1200px) 100vw, 1200px"
                 className={[
-                  "absolute inset-0 transition-opacity duration-700 ease-in-out",
-                  i === index ? "opacity-100" : "opacity-0",
+                  "object-cover transition-transform duration-[6000ms] ease-out",
+                  i === index ? "scale-105" : "scale-100",
                 ].join(" ")}
-                aria-hidden={i !== index}
-              >
-                <Image
-                  src={slide.image}
-                  alt={slide.title}
-                  fill
-                  priority={i === 0}
-                  sizes="(max-width: 1170px) 100vw, 1170px"
-                  className="object-cover"
+              />
+            </div>
+          ))}
+
+          {/* Readability gradient */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy-deep/30 to-transparent" />
+
+          {/* Caption */}
+          <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10">
+            <div key={index} className="uon-fade-in max-w-2xl">
+              <span className="uon-eyebrow text-gold">University of Nursing, Mandalay</span>
+              <h2 className="mt-2 text-2xl leading-tight text-white sm:text-3xl lg:text-4xl">
+                {current.title}
+              </h2>
+              {current.description ? (
+                <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
+                  {current.description}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Arrows */}
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Previous slide"
+            className="absolute top-1/2 left-4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/35"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+              <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Next slide"
+            className="absolute top-1/2 right-4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/35"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+              <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {/* Dots + play/pause */}
+          <div className="absolute right-5 bottom-5 flex items-center gap-3 sm:right-8 sm:bottom-8">
+            <button
+              type="button"
+              onClick={() => setPlaying((p) => !p)}
+              aria-label={playing ? "Pause slideshow" : "Play slideshow"}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/35"
+            >
+              {playing ? (
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                  <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5l11 7-11 7z" />
+                </svg>
+              )}
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              {slides.map((slide, i) => (
+                <button
+                  key={slide.image}
+                  type="button"
+                  onClick={() => setIndex(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  aria-current={i === index}
+                  className={[
+                    "h-2 rounded-full transition-all",
+                    i === index ? "w-6 bg-gold" : "w-2 bg-white/50 hover:bg-white/80",
+                  ].join(" ")}
                 />
-              </div>
-            ))}
-
-            {/* Left / right gradient masks (mirror the original mask images) */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-[60px] bg-gradient-to-r from-black/25 to-transparent" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-[60px] bg-gradient-to-l from-black/25 to-transparent" />
-
-            {/* Caption */}
-            {slides[index].title ? (
-              <div
-                key={slides[index].title}
-                className="uon-fade-in absolute bottom-[45px] left-[20px] max-w-[60%] bg-black/60 px-[18px] py-[12px] text-white"
-              >
-                <h3 className="text-[18px] font-bold uppercase text-white">
-                  {slides[index].title}
-                </h3>
-                {slides[index].description ? (
-                  <p className="mt-[6px] text-[13px] leading-[1.5] text-[#e4e9ee]">
-                    {slides[index].description}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {/* Controls */}
-            <div className="absolute right-[15px] bottom-[10px] flex items-center gap-[14px] text-[11px] font-bold text-white/95">
-              <button type="button" onClick={() => go(-1)} className="hover:text-gold">
-                &laquo; Previous
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlaying(true)}
-                className="hover:text-gold"
-              >
-                &lsaquo; PLAYBACK
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlaying(false)}
-                className="hover:text-gold"
-              >
-                STOP
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlaying(true)}
-                className="hover:text-gold"
-              >
-                PLAY &rsaquo;
-              </button>
-              <button type="button" onClick={() => go(1)} className="hover:text-gold">
-                Next &raquo;
-              </button>
+              ))}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
