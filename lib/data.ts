@@ -5,71 +5,96 @@ export type NavItem = {
 };
 
 /**
- * Labels mirror the original menu. Entries without an `href` are intentionally
- * inert, so nothing navigates away to the live uonmdy.edu.mm site.
+ * Labels mirror the original menu, with each entry pointing at its in-site page.
  */
 
 export const navItems: NavItem[] = [
   { label: "Home", href: "/" },
   {
     label: "University",
+    href: "/university/aim-and-objectives",
     children: [
-      { label: "Aim and Objectives" },
-      { label: "History of University" },
-      { label: "Vision and Mission" },
-      { label: "Organogram" },
-      { label: "Campus" },
-      { label: "Library" },
-      { label: "Foreward by Rector" },
+      { label: "Aim and Objectives", href: "/university/aim-and-objectives" },
+      { label: "History of University", href: "/university/history-of-university" },
+      { label: "Vision and Mission", href: "/university/vision-and-mission" },
+      { label: "Organogram", href: "/university/organogram" },
+      { label: "Campus", href: "/university/campus" },
+      { label: "Library", href: "/university/library" },
+      { label: "Foreward by Rector", href: "/university/foreward-by-rector" },
     ],
   },
   {
     label: "Faculty",
+    href: "/faculty/administrative",
     children: [
-      { label: "Administrative" },
-      { label: "Academic" },
+      { label: "Administrative", href: "/faculty/administrative" },
+      { label: "Academic", href: "/faculty/academic" },
     ],
   },
   {
     label: "Study",
+    href: "/study/courses",
     children: [
-      { label: "Courses and Eligibility" },
-      { label: "Teaching Hospitals" },
-      { label: "Research" },
-      { label: "Statistics" },
-      { label: "Field Area" },
+      { label: "Courses and Eligibility", href: "/study/courses" },
+      { label: "Teaching Hospitals", href: "/study/teaching-hospitals" },
+      { label: "Research", href: "/study/research" },
+      { label: "Statistics", href: "/study/statistics" },
+      { label: "Field Area", href: "/study/field-area" },
     ],
   },
   {
     label: "Departments",
+    href: "/departments",
     children: [
-      { label: "Myanmar" },
-      { label: "English" },
-      { label: "Physics" },
-      { label: "Chemistry" },
-      { label: "Human Biology (Physiology and Anatomy)" },
-      { label: "Pathology" },
-      { label: "Microbiology" },
-      { label: "Pharmacology" },
-      { label: "Biochemistry" },
-      { label: "Fundamental Nursing" },
-      { label: "Community Health Nursing" },
-      { label: "Maternal and Child Health Nursing" },
-      { label: "Adult Health Nursing" },
-      { label: "Mental Health Nursing" },
+      { label: "Myanmar", href: "/departments/myanmar" },
+      { label: "English", href: "/departments/english" },
+      { label: "Physics", href: "/departments/physics" },
+      { label: "Chemistry", href: "/departments/chemistry" },
+      { label: "Human Biology (Physiology and Anatomy)", href: "/departments/humanbiology" },
+      { label: "Pathology", href: "/departments/pathology" },
+      { label: "Microbiology", href: "/departments/microbiology" },
+      { label: "Pharmacology", href: "/departments/pharmacology" },
+      { label: "Biochemistry", href: "/departments/biochemistry" },
+      { label: "Fundamental Nursing", href: "/departments/fundamental-nursing" },
+      { label: "Community Health Nursing", href: "/departments/communityhealthnursing" },
+      { label: "Maternal and Child Health Nursing", href: "/departments/maternal-childhealthnursing" },
+      { label: "Adult Health Nursing", href: "/departments/adulthealthnursing" },
+      { label: "Mental Health Nursing", href: "/departments/mentalhealthnursing" },
     ],
   },
   {
     label: "Activities",
+    href: "/activities/news",
     children: [
-      { label: "News" },
-      { label: "Announcement" },
-      { label: "Seminars and Workshops" },
+      { label: "News", href: "/activities/news" },
+      { label: "Announcement", href: "/activities/announcement" },
+      { label: "Seminars and Workshops", href: "/activities/seminars-workshops" },
     ],
   },
-  { label: "Gallery" },
-  { label: "Contact us" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Contact us", href: "/contact-us" },
 ];
+
+/** Longest-first so nested paths are matched before their parents. */
+export const navHrefs: string[] = navItems
+  .flatMap((item) => [item.href, ...(item.children ?? []).map((child) => child.href)])
+  .filter((href): href is string => Boolean(href))
+  .sort((a, b) => b.length - a.length);
+
+/** Menu label and parent label for an in-site path, or null when unknown. */
+export function navEntryFor(
+  href: string,
+): { label: string; parent: { label: string; href?: string } | null } | null {
+  for (const item of navItems) {
+    if (item.href === href) return { label: item.label, parent: null };
+    for (const child of item.children ?? []) {
+      if (child.href === href) {
+        return { label: child.label, parent: { label: item.label, href: item.href } };
+      }
+    }
+  }
+  return null;
+}
 
 export const slides = [
   {

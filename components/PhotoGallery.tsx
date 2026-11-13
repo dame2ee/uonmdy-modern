@@ -2,23 +2,26 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { galleryImages } from "@/lib/data";
+import type { GalleryImage } from "@/lib/types";
 
 const PER_PAGE = 6;
 
-export default function PhotoGallery() {
+export default function PhotoGallery({ images }: { images: GalleryImage[] }) {
   const [page, setPage] = useState(0);
-  const pageCount = Math.ceil(galleryImages.length / PER_PAGE);
+  const pageCount = Math.max(1, Math.ceil(images.length / PER_PAGE));
 
   useEffect(() => {
+    if (pageCount < 2) return;
     const id = window.setInterval(() => {
       setPage((p) => (p + 1) % pageCount);
     }, 6000);
     return () => window.clearInterval(id);
   }, [pageCount]);
 
-  const start = page * PER_PAGE;
-  const visible = galleryImages.slice(start, start + PER_PAGE);
+  if (images.length === 0) return null;
+
+  const start = (page % pageCount) * PER_PAGE;
+  const visible = images.slice(start, start + PER_PAGE);
 
   return (
     <section className="bg-mist py-12">
@@ -54,17 +57,17 @@ export default function PhotoGallery() {
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {visible.map((src) => (
+          {visible.map((photo) => (
             <a
-              key={src}
-              href={src}
+              key={photo.id}
+              href={photo.image_url}
               target="_blank"
               rel="noopener noreferrer"
               className="uon-fade-in group relative aspect-square overflow-hidden rounded-2xl ring-1 ring-black/5"
             >
               <Image
-                src={src}
-                alt="UONMDY photo gallery"
+                src={photo.image_url}
+                alt={photo.title ?? "UONMDY photo gallery"}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"

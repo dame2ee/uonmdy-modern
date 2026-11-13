@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { latestNews, mostRead, newsPagination, rectors, visitorStats } from "@/lib/data";
+import { mostRead, newsPagination, visitorStats } from "@/lib/data";
+import type { NewsItem, Rector } from "@/lib/types";
 
 const visitorRows = [
   { label: "Today", value: visitorStats.today },
@@ -9,7 +10,13 @@ const visitorRows = [
   { label: "All days", value: visitorStats.all },
 ];
 
-export default function SpotlightOne() {
+export default function SpotlightOne({
+  news,
+  rectors,
+}: {
+  news: NewsItem[];
+  rectors: Rector[];
+}) {
   const digits = String(visitorStats.all).split("");
 
   return (
@@ -23,12 +30,12 @@ export default function SpotlightOne() {
           </div>
 
           <div className="mt-4 space-y-4">
-            {latestNews.map((news) => (
-              <article key={news.title} className="group flex gap-3">
+            {news.map((item) => (
+              <article key={item.id} className="group flex gap-3">
                 <a className="relative h-[74px] w-[110px] shrink-0 overflow-hidden rounded-xl">
                   <Image
-                    src={news.image}
-                    alt={news.title}
+                    src={item.image_url ?? "/images/news/1.jpg"}
+                    alt={item.title}
                     fill
                     sizes="110px"
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -36,7 +43,7 @@ export default function SpotlightOne() {
                 </a>
                 <div className="min-w-0">
                   <a className="line-clamp-3 text-[13px] font-semibold leading-snug text-ink hover:text-brand">
-                    {news.title}
+                    {item.title}
                   </a>
                   <a className="mt-1 inline-block text-[12px] font-medium text-muted hover:text-brand">
                     Read more
@@ -69,11 +76,11 @@ export default function SpotlightOne() {
           <ul className="mt-4 space-y-1">
             {rectors.map((rector) => (
               <li
-                key={rector.name}
+                key={rector.id}
                 className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-mist"
               >
                 <Image
-                  src={rector.image}
+                  src={rector.image_url ?? "/images/rectors/1.jpg"}
                   alt={rector.name}
                   width={48}
                   height={48}

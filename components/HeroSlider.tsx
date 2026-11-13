@@ -2,21 +2,26 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { slides } from "@/lib/data";
+import type { Slide } from "@/lib/types";
 
-export default function HeroSlider() {
+export default function HeroSlider({ slides }: { slides: Slide[] }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
 
-  const go = useCallback((dir: 1 | -1) => {
-    setIndex((prev) => (prev + dir + slides.length) % slides.length);
-  }, []);
+  const go = useCallback(
+    (dir: 1 | -1) => {
+      setIndex((prev) => (prev + dir + slides.length) % slides.length);
+    },
+    [slides.length],
+  );
 
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || slides.length < 2) return;
     const id = window.setInterval(() => go(1), 6000);
     return () => window.clearInterval(id);
-  }, [playing, go]);
+  }, [playing, go, slides.length]);
+
+  if (slides.length === 0) return null;
 
   const current = slides[index];
 
@@ -26,7 +31,7 @@ export default function HeroSlider() {
         <div className="relative h-[300px] sm:h-[420px] lg:h-[520px]">
           {slides.map((slide, i) => (
             <div
-              key={slide.image}
+              key={slide.id}
               className={[
                 "absolute inset-0 transition-opacity duration-1000 ease-out",
                 i === index ? "opacity-100" : "opacity-0",
@@ -34,7 +39,7 @@ export default function HeroSlider() {
               aria-hidden={i !== index}
             >
               <Image
-                src={slide.image}
+                src={slide.image_url}
                 alt={slide.title}
                 fill
                 priority={i === 0}
@@ -57,9 +62,9 @@ export default function HeroSlider() {
               <h2 className="mt-2 text-2xl leading-tight text-white sm:text-3xl lg:text-4xl">
                 {current.title}
               </h2>
-              {current.description ? (
+              {current.subtitle ? (
                 <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
-                  {current.description}
+                  {current.subtitle}
                 </p>
               ) : null}
             </div>
@@ -109,7 +114,7 @@ export default function HeroSlider() {
             <div className="flex items-center gap-1.5">
               {slides.map((slide, i) => (
                 <button
-                  key={slide.image}
+                  key={slide.id}
                   type="button"
                   onClick={() => setIndex(i)}
                   aria-label={`Go to slide ${i + 1}`}
