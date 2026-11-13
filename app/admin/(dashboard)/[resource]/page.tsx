@@ -85,7 +85,8 @@ export default async function ResourceListPage({
                 <th className="px-5 py-3 font-semibold">{resource.fields.find((f) => f.name === resource.titleField)?.label ?? resource.titleField}</th>
                 {columns.map((column) => (
                   <th key={column} className="px-5 py-3 font-semibold">
-                    {column.replace(/_/g, " ")}
+                    {resource.fields.find((field) => field.name === column)?.label ??
+                      column.replace(/_/g, " ")}
                   </th>
                 ))}
                 <th className="px-5 py-3 text-right font-semibold">Actions</th>

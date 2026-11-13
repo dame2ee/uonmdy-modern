@@ -4,13 +4,19 @@
  *   npm run create-admin -- admin@example.edu "S3curePassw0rd" "Full Name"
  *
  * Uses the service-role key, so the account is created pre-confirmed and the
- * profile row is promoted to `admin`. Run the migration first.
+ * profile row is promoted to `admin`. A secret key is minted and printed here,
+ * because the admin centre cannot be opened without one. Re-running the script
+ * resets the password and issues a new key.
+ *
+ * Run the migrations first.
  */
+import { generateSecretKey } from "../lib/secret-key";
 import { loadEnvLocal, serviceFetch } from "./env";
 
 loadEnvLocal();
 
-const [email, password, fullName] = process.argv.slice(2);
+const [rawEmail, password, fullName] = process.argv.slice(2);
+const email = rawEmail?.trim().toLowerCase();
 
 if (!email || !password) {
   console.error(
@@ -69,6 +75,7 @@ async function createOrResetUser() {
 
 async function main() {
   const userId = await createOrResetUser();
+  const secretKey = generateSecretKey();
 
   // Upsert rather than update: the trigger normally creates this row, but an
   // account made before the migration was applied would not have one.
@@ -76,12 +83,20 @@ async function main() {
     method: "POST",
     prefer: "resolution=merge-duplicates,return=minimal",
     body: JSON.stringify([
-      { id: userId, email, full_name: fullName ?? null, role: "admin" },
+      {
+        id: userId,
+        email,
+        full_name: fullName ?? null,
+        role: "admin",
+        secret_key: secretKey,
+      },
     ]),
   });
 
   console.log(`\nAdmin ready: ${email}`);
-  console.log(`Sign in at /admin/login`);
+  console.log(`Password:    (the one you just passed in)`);
+  console.log(`Secret key:  ${secretKey}`);
+  console.log(`\nBoth are needed at /admin/login. Pass the key on privately.`);
 }
 
 main().catch((error) => {

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "seed": "npx --yes tsx scripts/seed.ts",
     "seed:pages": "npx --yes tsx scripts/seed-pages.ts",
-    "create-admin": "npx --yes tsx scripts/create-admin.ts"
+    "create-admin": "npx --yes tsx scripts/create-admin.ts",
+    "set-secret-key": "npx --yes tsx scripts/set-secret-key.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

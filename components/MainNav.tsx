@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import LoginSidebar from "./LoginSidebar";
-import { navItems } from "@/lib/data";
+import type { NavItem } from "@/lib/data";
 
-export default function MainNav() {
+export default function MainNav({ items }: { items: NavItem[] }) {
   const [navOpen, setNavOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
 
@@ -30,7 +30,7 @@ export default function MainNav() {
 
           {/* Desktop links */}
           <ul className="hidden items-center md:flex">
-            {navItems.map((item) => {
+            {items.map((item) => {
               const isActive = item.label === "Home";
               return (
                 <li key={item.label} className="group relative">
@@ -92,7 +92,7 @@ export default function MainNav() {
 
         {/* Mobile list */}
         <ul className={`${navOpen ? "block" : "hidden"} pb-4 md:hidden`}>
-          {navItems.map((item) => (
+          {items.map((item) => (
             <li key={item.label} className="border-t border-white/10">
               <a href={item.href} className="block py-3 text-[14px] font-semibold text-white">
                 {item.label}

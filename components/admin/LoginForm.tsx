@@ -60,6 +60,22 @@ export default function LoginForm({ next }: { next: string }) {
         />
       </div>
 
+      <div>
+        <label
+          htmlFor="secretkey"
+          className="mb-1.5 block text-sm font-semibold text-ink"
+        >
+          Secret key
+        </label>
+        <input
+          id="secretkey"
+          name="secretkey"
+          type="password"
+          required
+          className={inputClass}
+        />
+      </div>
+
       <button
         type="submit"
         disabled={pending}

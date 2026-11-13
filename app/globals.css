@@ -281,6 +281,17 @@
   .uon-prose td img {
     border-radius: 8px;
   }
+
+  /* Editing surface of the admin visual editor, styled like the published page
+     so what staff see while typing matches the website. */
+  .uon-editor {
+    outline: none;
+  }
+
+  .uon-editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--color-muted);
+  }
 }
 
 /* Fade-in used by slides, gallery pages and rotating content */

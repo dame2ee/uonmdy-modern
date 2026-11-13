@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import PageBanner from "@/components/PageBanner";
 import PageContent from "@/components/PageContent";
 import { getSitePage } from "@/lib/content";
-import { navEntryFor, navHrefs } from "@/lib/data";
+import { navEntryFor } from "@/lib/data";
 
 type Props = { params: Promise<{ section: string; page: string }> };
 
@@ -15,29 +15,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     getSitePage(`${section}/${page}`),
     Promise.resolve(navEntryFor(href)),
   ]);
-  const title = doc?.title ?? entry?.label ?? "Page";
 
+  if (!doc && !entry) notFound();
+
+  const title = doc?.title ?? entry?.label ?? "Page";
   return { title: `${title} - University of Nursing, Mandalay` };
 }
 
 export default async function ContentPage({ params }: Props) {
   const { section, page } = await params;
   const href = `/${section}/${page}`;
-  const entry = navEntryFor(href);
+  const [entry, doc] = await Promise.all([
+    Promise.resolve(navEntryFor(href)),
+    getSitePage(`${section}/${page}`),
+  ]);
 
-  if (!entry || !navHrefs.includes(href)) notFound();
+  // A page is reachable when it is part of the fixed menu or was published
+  // from the admin centre.
+  if (!entry && !doc) notFound();
 
-  const doc = await getSitePage(`${section}/${page}`);
-  const title = doc?.title ?? entry.label;
+  const title = doc?.title ?? entry?.label ?? "Page";
+  const parent = entry?.parent ?? (doc?.section ? { label: doc.section } : null);
 
   return (
     <>
       <PageBanner
-        eyebrow={doc?.section ?? entry.parent?.label ?? undefined}
+        eyebrow={doc?.section ?? entry?.parent?.label ?? undefined}
         title={title}
         crumbs={[
-          ...(entry.parent ? [{ label: entry.parent.label, href: entry.parent.href }] : []),
-          { label: entry.label },
+          ...(parent ? [{ label: parent.label, href: parent.href }] : []),
+          { label: entry?.label ?? title },
         ]}
       />
 

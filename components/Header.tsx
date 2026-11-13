@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import SearchForm from "@/components/SearchForm";
 
 export default function Header() {
   return (
@@ -34,41 +35,7 @@ export default function Header() {
           />
         </Link>
 
-        <form
-          role="search"
-          className="flex w-full max-w-[360px] items-center gap-1 rounded-full bg-white/95 p-1 shadow-lg shadow-navy-deep/20"
-        >
-          <label htmlFor="searchword" className="hidden">
-            Search ...
-          </label>
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            className="ml-2.5 shrink-0 text-muted"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="M20 20l-4.2-4.2" strokeLinecap="round" />
-          </svg>
-          <input
-            id="searchword"
-            name="searchword"
-            type="search"
-            maxLength={200}
-            placeholder="Search the university…"
-            className="min-w-0 flex-1 bg-transparent px-1 text-[13px] text-ink outline-none placeholder:text-muted"
-          />
-          <button
-            type="submit"
-            className="shrink-0 rounded-full bg-brand px-3.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-navy"
-          >
-            Search
-          </button>
-        </form>
+        <SearchForm />
       </div>
     </header>
   );

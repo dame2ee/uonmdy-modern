@@ -25,6 +25,40 @@ npm run build   # production build
 npm run lint    # eslint
 ```
 
+## Admin centre
+
+`/admin` edits the content the public pages read. Text bodies are edited in a
+visual editor and photos are uploaded directly, so nothing has to be typed as
+HTML or as a file path.
+
+Uploads are stored in the public `media` Supabase Storage bucket, which is
+created by the second migration:
+
+```bash
+# in the Supabase SQL editor
+supabase/migrations/0001_init.sql   # schema, RLS, triggers
+supabase/migrations/0002_media_storage.sql   # media bucket for admin uploads
+supabase/migrations/0003_secret_keys.sql     # per-account sign-in keys
+```
+
+### Signing in
+
+Three things are required at `/admin/login`: email, password **and** the
+account's own secret key. Each staff member has a different key, so a leaked
+password on its own is not enough to reach the admin centre.
+
+Every account starts without a key, which blocks sign-in until one is set.
+Mint the first one from the command line:
+
+```bash
+npm run create-admin  -- admin@example.edu "S3curePassw0rd" "Full Name"   # creates the account and prints a key
+npm run set-secret-key -- admin@example.edu                               # issues a new key for an existing account
+```
+
+Afterwards keys are managed in the admin centre under **Users**
+(administrators only), where each account's key can be read, replaced or
+generated. An editor can neither see nor change anyone else's key.
+
 ## Structure
 
 | Path | Purpose |

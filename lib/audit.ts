@@ -39,7 +39,7 @@ export async function recordAudit({
 export function diffableRecord(
   values: Record<string, unknown>,
 ): Record<string, unknown> {
-  const redacted = new Set(["password", "secret", "token"]);
+  const redacted = new Set(["password", "secret", "secret_key", "token"]);
   return Object.fromEntries(
     Object.entries(values).filter(([key]) => !redacted.has(key)),
   );

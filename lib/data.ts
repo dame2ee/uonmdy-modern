@@ -75,12 +75,6 @@ export const navItems: NavItem[] = [
   { label: "Contact us", href: "/contact-us" },
 ];
 
-/** Longest-first so nested paths are matched before their parents. */
-export const navHrefs: string[] = navItems
-  .flatMap((item) => [item.href, ...(item.children ?? []).map((child) => child.href)])
-  .filter((href): href is string => Boolean(href))
-  .sort((a, b) => b.length - a.length);
-
 /** Menu label and parent label for an in-site path, or null when unknown. */
 export function navEntryFor(
   href: string,

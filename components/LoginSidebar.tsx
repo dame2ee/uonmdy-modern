@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useActionState, useEffect } from "react";
+import { loginAction } from "@/app/admin/actions";
+import { initialActionState } from "@/lib/admin/action-state";
 
 type Props = {
   open: boolean;
@@ -33,7 +35,13 @@ function FieldIcon({ name }: { name: "user" | "lock" | "key" }) {
 const fieldInput =
   "h-11 w-full rounded-r-xl border border-line bg-mist px-3 text-[14px] text-ink outline-none transition-colors focus:border-brand focus:bg-white";
 
+/** Side-out staff sign-in. It signs into the admin centre, secret key included. */
 export default function LoginSidebar({ open, onClose }: Props) {
+  const [state, formAction, pending] = useActionState(
+    loginAction,
+    initialActionState,
+  );
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -81,20 +89,32 @@ export default function LoginSidebar({ open, onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form action={formAction} className="space-y-4">
+            <input type="hidden" name="next" value="/admin" />
+
+            {state.status === "error" && state.message ? (
+              <p
+                role="alert"
+                className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700"
+              >
+                {state.message}
+              </p>
+            ) : null}
+
             <div>
-              <label htmlFor="login-username" className="mb-1.5 block text-[13px] font-medium text-ink">
-                Username
+              <label htmlFor="login-email" className="mb-1.5 block text-[13px] font-medium text-ink">
+                Email
               </label>
               <div className="flex">
                 <span className="flex h-11 w-11 items-center justify-center rounded-l-xl border border-r-0 border-line bg-white text-muted">
                   <FieldIcon name="user" />
                 </span>
                 <input
-                  id="login-username"
-                  name="username"
-                  type="text"
-                  autoComplete="username"
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
                   className={fieldInput}
                 />
               </div>
@@ -113,6 +133,7 @@ export default function LoginSidebar({ open, onClose }: Props) {
                   name="password"
                   type="password"
                   autoComplete="current-password"
+                  required
                   className={fieldInput}
                 />
               </div>
@@ -130,36 +151,23 @@ export default function LoginSidebar({ open, onClose }: Props) {
                   id="login-secretkey"
                   name="secretkey"
                   type="password"
+                  required
                   className={fieldInput}
                 />
               </div>
             </div>
 
-            <label className="flex items-center gap-2 text-[13px] text-body">
-              <input
-                type="checkbox"
-                name="remember"
-                value="yes"
-                className="h-4 w-4 rounded accent-brand"
-              />
-              Remember Me
-            </label>
-
             <button
               type="submit"
-              className="w-full rounded-xl bg-gradient-to-r from-navy to-brand px-4 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:from-navy-deep hover:to-navy"
+              disabled={pending}
+              className="w-full rounded-xl bg-gradient-to-r from-navy to-brand px-4 py-3 text-[14px] font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:from-navy-deep hover:to-navy disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Log in
+              {pending ? "Signing in…" : "Log in"}
             </button>
 
-            <ul className="space-y-2 pt-1">
-              <li>
-                <a className="text-[13px] font-medium">Forgot your username?</a>
-              </li>
-              <li>
-                <a className="text-[13px] font-medium">Forgot your password?</a>
-              </li>
-            </ul>
+            <p className="text-[12px] text-muted">
+              Staff only. Access is limited to accounts issued by the university.
+            </p>
           </form>
         </div>
       </aside>

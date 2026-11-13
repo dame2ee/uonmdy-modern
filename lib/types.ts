@@ -10,6 +10,8 @@ export type Profile = {
   email: string;
   full_name: string | null;
   role: AppRole;
+  /** Per-account key required at sign-in. Never rendered outside /admin/users. */
+  secret_key: string | null;
   created_at: string;
   updated_at: string;
 };

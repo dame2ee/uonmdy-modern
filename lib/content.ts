@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { htmlToText } from "@/lib/sanitize-html";
 import type {
   Announcement,
   CampusStat,
@@ -173,4 +174,146 @@ export async function getCampusStats(): Promise<CampusStat[]> {
     return [];
   }
   return (data ?? []) as CampusStat[];
+}
+
+// ---------------------------------------------------------------------------
+//  Site search
+// ---------------------------------------------------------------------------
+
+export type SearchHit = {
+  id: string;
+  kind: "Page" | "News" | "Announcement";
+  title: string;
+  href: string;
+  /** Where the page sits in the menu, e.g. "Departments". */
+  context: string | null;
+  snippet: string | null;
+  publishedAt: string | null;
+};
+
+type PageRow = {
+  id: string;
+  slug: string;
+  title: string;
+  section: string | null;
+  body: string | null;
+};
+
+type NewsRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string | null;
+  published_at: string | null;
+};
+
+type AnnouncementRow = {
+  id: string;
+  title: string;
+  body: string | null;
+  published_at: string | null;
+};
+
+/** Shortest term worth querying for, also used by the results page. */
+export const MIN_SEARCH_LENGTH = 2;
+
+/**
+ * `%` and `_` are wildcards and `,()` break the PostgREST `or` grammar, so a
+ * typed term is escaped before it is used as a filter.
+ */
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&").replace(/[,()"'*]/g, " ").trim();
+}
+
+function buildSnippet(html: string | null, term: string, length = 200): string | null {
+  const text = htmlToText(html);
+  if (!text) return null;
+
+  const index = text.toLowerCase().indexOf(term.toLowerCase());
+
+  if (index === -1) {
+    return text.length > length ? `${text.slice(0, length).trimEnd()}…` : text;
+  }
+
+  const start = Math.max(0, index - 70);
+  const end = Math.min(text.length, index + term.length + 130);
+  return `${start > 0 ? "…" : ""}${text.slice(start, end).trim()}${end < text.length ? "…" : ""}`;
+}
+
+/** Searches published pages, news and announcements. */
+export async function searchContent(query: string, limit = 25): Promise<SearchHit[]> {
+  const term = query.trim().slice(0, 80);
+  if (term.length < MIN_SEARCH_LENGTH) return [];
+
+  const pattern = `%${escapeLike(term)}%`;
+  const supabase = await createClient();
+
+  const [pages, news, announcements] = await Promise.all([
+    supabase
+      .from("pages")
+      .select("id, slug, title, section, body")
+      .eq("published", true)
+      .or(`title.ilike.${pattern},body.ilike.${pattern}`)
+      .order("title", { ascending: true })
+      .limit(limit),
+    supabase
+      .from("news")
+      .select("id, slug, title, excerpt, body, published_at")
+      .eq("published", true)
+      .or(`title.ilike.${pattern},excerpt.ilike.${pattern},body.ilike.${pattern}`)
+      .order("published_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("announcements")
+      .select("id, title, body, published_at")
+      .eq("published", true)
+      .or(`title.ilike.${pattern},body.ilike.${pattern}`)
+      .order("published_at", { ascending: false })
+      .limit(limit),
+  ]);
+
+  for (const [label, result] of [
+    ["pages", pages],
+    ["news", news],
+    ["announcements", announcements],
+  ] as const) {
+    if (result.error) console.error(`[content] search ${label}:`, result.error.message);
+  }
+
+  const hits: SearchHit[] = [
+    ...((pages.data ?? []) as PageRow[]).map((row) => ({
+      id: row.id,
+      kind: "Page" as const,
+      title: row.title,
+      href: `/${row.slug}`,
+      context: row.section,
+      snippet: buildSnippet(row.body, term),
+      publishedAt: null,
+    })),
+    ...((news.data ?? []) as NewsRow[]).map((row) => ({
+      id: row.id,
+      kind: "News" as const,
+      title: row.title,
+      href: `/activities/news/${row.slug}`,
+      context: "News",
+      snippet: buildSnippet(row.excerpt ?? row.body, term),
+      publishedAt: row.published_at,
+    })),
+    ...((announcements.data ?? []) as AnnouncementRow[]).map((row) => ({
+      id: row.id,
+      kind: "Announcement" as const,
+      title: row.title,
+      href: `/activities/announcement/${row.id}`,
+      context: "Announcement",
+      snippet: buildSnippet(row.body, term),
+      publishedAt: row.published_at,
+    })),
+  ];
+
+  const lower = term.toLowerCase();
+  return hits.sort((a, b) => {
+    const score = (hit: SearchHit) => (hit.title.toLowerCase().includes(lower) ? 0 : 1);
+    return score(a) - score(b) || a.title.localeCompare(b.title);
+  });
 }

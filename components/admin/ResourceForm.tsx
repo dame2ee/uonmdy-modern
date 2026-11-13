@@ -1,28 +1,69 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, type ReactNode } from "react";
+import ImageField from "@/components/admin/ImageField";
+import RichTextEditor from "@/components/admin/RichTextEditor";
+import { FieldError, FieldHelp, FieldLabel, inputClass } from "@/components/admin/FieldShell";
 import { saveResourceAction } from "@/app/admin/actions";
 import { initialActionState } from "@/lib/admin/action-state";
 import type { FieldDef, ResourceDef } from "@/lib/admin/resources";
 
-const inputClass =
-  "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10";
+/** Form for every content type, generated from the field registry. */
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="mt-1.5 text-xs font-medium text-red-600">{message}</p>;
-}
-
-function Label({ field }: { field: FieldDef }) {
+function BooleanField({ field, defaultChecked }: { field: FieldDef; defaultChecked: boolean }) {
   return (
-    <label htmlFor={field.name} className="mb-1.5 block text-sm font-semibold text-ink">
-      {field.label}
-      {field.required ? <span className="ml-1 text-red-500">*</span> : null}
+    <label
+      htmlFor={field.name}
+      className="flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-mist/60 px-4 py-3"
+    >
+      <input
+        id={field.name}
+        name={field.name}
+        type="checkbox"
+        defaultChecked={defaultChecked}
+        className="mt-0.5 h-4 w-4 rounded border-line text-brand focus:ring-brand"
+      />
+      <span>
+        <span className="block text-sm font-semibold text-ink">{field.label}</span>
+        {field.help ? <span className="mt-0.5 block text-xs text-muted">{field.help}</span> : null}
+      </span>
     </label>
   );
 }
 
-function ImageField({
+function SelectField({ field, defaultValue }: { field: FieldDef; defaultValue: string }) {
+  const options = field.options ?? [];
+  const hasBlank = options.some((option) => option.value === "");
+  // A value stored before this field became a dropdown stays selectable.
+  const current = options.some((option) => option.value === defaultValue) ? null : defaultValue;
+
+  return (
+    <div>
+      <FieldLabel field={field} />
+      <select
+        id={field.name}
+        name={field.name}
+        defaultValue={defaultValue}
+        className={`${inputClass} appearance-none bg-[length:14px] bg-[right_0.9rem_center] bg-no-repeat pr-10`}
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237b8a9a'%3E%3Cpath d='M12 15.5 5.5 9h13z'/%3E%3C/svg%3E\")",
+        }}
+      >
+        {!field.required && !hasBlank ? <option value="">— None —</option> : null}
+        {current ? <option value={current}>{current} (current)</option> : null}
+        {options.map((option) => (
+          <option key={option.value || "none"} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <FieldHelp>{field.help}</FieldHelp>
+    </div>
+  );
+}
+
+function TextField({
   field,
   defaultValue,
   error,
@@ -31,36 +72,67 @@ function ImageField({
   defaultValue: string;
   error?: string;
 }) {
-  const [value, setValue] = useState(defaultValue);
+  const listId = field.options ? `${field.name}-options` : undefined;
+  const multiline = field.type === "textarea";
 
   return (
     <div>
-      <Label field={field} />
-      <div className="flex items-start gap-4">
+      <FieldLabel field={field} />
+      {multiline ? (
+        <textarea
+          id={field.name}
+          name={field.name}
+          rows={field.rows ?? 4}
+          maxLength={field.maxLength}
+          defaultValue={defaultValue}
+          placeholder={field.placeholder}
+          className={`${inputClass} resize-y leading-relaxed`}
+        />
+      ) : (
         <input
           id={field.name}
           name={field.name}
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
+          type={field.type === "number" ? "number" : "text"}
+          maxLength={field.maxLength}
+          defaultValue={defaultValue}
+          placeholder={field.placeholder}
+          list={listId}
           className={inputClass}
-          placeholder={field.placeholder ?? "/images/example.jpg"}
         />
-        {value ? (
-          // Arbitrary admin-supplied URLs cannot be pre-declared in next.config.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={value}
-            alt=""
-            className="h-20 w-28 shrink-0 rounded-lg border border-line bg-mist object-cover"
-          />
-        ) : null}
-      </div>
-      <p className="mt-1.5 text-xs text-muted">
-        {field.help ?? "Path or absolute URL to the image."}
-      </p>
+      )}
+      {field.options && listId ? (
+        <datalist id={listId}>
+          {field.options.map((option) => (
+            <option key={option.value} value={option.value} />
+          ))}
+        </datalist>
+      ) : null}
+      <FieldHelp>{field.help}</FieldHelp>
       <FieldError message={error} />
     </div>
   );
+}
+
+function renderField(
+  field: FieldDef,
+  raw: unknown,
+  isNew: boolean,
+  error?: string,
+): ReactNode {
+  const defaultText = raw == null ? (field.type === "number" ? "0" : "") : String(raw);
+
+  switch (field.type) {
+    case "boolean":
+      return <BooleanField key={field.name} field={field} defaultChecked={isNew ? raw !== false : Boolean(raw)} />;
+    case "image":
+      return <ImageField key={field.name} field={field} defaultValue={defaultText} error={error} />;
+    case "richtext":
+      return <RichTextEditor key={field.name} field={field} defaultValue={defaultText} error={error} />;
+    case "select":
+      return <SelectField key={field.name} field={field} defaultValue={defaultText} />;
+    default:
+      return <TextField key={field.name} field={field} defaultValue={defaultText} error={error} />;
+  }
 }
 
 export default function ResourceForm({
@@ -78,6 +150,9 @@ export default function ResourceForm({
   const errors = state.fieldErrors ?? {};
   const isNew = !record;
 
+  const mainFields = resource.fields.filter((field) => !field.advanced);
+  const advancedFields = resource.fields.filter((field) => field.advanced);
+
   return (
     <form action={formAction} className="space-y-6">
       <input type="hidden" name="__resource" value={resource.key} />
@@ -93,80 +168,25 @@ export default function ResourceForm({
       ) : null}
 
       <div className="uon-card space-y-6 p-6">
-        {resource.fields.map((field) => {
-          const raw = record?.[field.name];
-
-          if (field.type === "boolean") {
-            const checked = isNew ? raw !== false : Boolean(raw);
-            return (
-              <div key={field.name} className="flex items-center gap-3">
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="checkbox"
-                  defaultChecked={checked}
-                  className="h-4 w-4 rounded border-line text-brand focus:ring-brand"
-                />
-                <label htmlFor={field.name} className="text-sm font-semibold text-ink">
-                  {field.label}
-                </label>
-              </div>
-            );
-          }
-
-          if (field.type === "image") {
-            return (
-              <ImageField
-                key={field.name}
-                field={field}
-                defaultValue={raw == null ? "" : String(raw)}
-                error={errors[field.name]}
-              />
-            );
-          }
-
-          if (field.type === "textarea") {
-            return (
-              <div key={field.name}>
-                <Label field={field} />
-                <textarea
-                  id={field.name}
-                  name={field.name}
-                  rows={field.name === "body" ? 12 : 4}
-                  maxLength={field.maxLength}
-                  defaultValue={raw == null ? "" : String(raw)}
-                  className={`${inputClass} resize-y leading-relaxed`}
-                />
-                {field.help ? (
-                  <p className="mt-1.5 text-xs text-muted">{field.help}</p>
-                ) : null}
-                <FieldError message={errors[field.name]} />
-              </div>
-            );
-          }
-
-          return (
-            <div key={field.name}>
-              <Label field={field} />
-              <input
-                id={field.name}
-                name={field.name}
-                type={field.type === "number" ? "number" : "text"}
-                maxLength={field.maxLength}
-                defaultValue={
-                  raw == null ? (field.type === "number" ? 0 : "") : String(raw)
-                }
-                placeholder={field.placeholder}
-                className={inputClass}
-              />
-              {field.help ? (
-                <p className="mt-1.5 text-xs text-muted">{field.help}</p>
-              ) : null}
-              <FieldError message={errors[field.name]} />
-            </div>
-          );
-        })}
+        <p className="text-xs text-muted">Fields marked with * are required.</p>
+        {mainFields.map((field) => renderField(field, record?.[field.name], isNew, errors[field.name]))}
       </div>
+
+      {advancedFields.length > 0 ? (
+        <details className="uon-card overflow-hidden">
+          <summary className="cursor-pointer px-6 py-4 text-sm font-semibold text-ink">
+            More options
+            <span className="ml-2 text-xs font-normal text-muted">
+              {advancedFields.map((field) => field.label).join(" · ")}
+            </span>
+          </summary>
+          <div className="space-y-6 border-t border-line px-6 py-6">
+            {advancedFields.map((field) =>
+              renderField(field, record?.[field.name], isNew, errors[field.name]),
+            )}
+          </div>
+        </details>
+      ) : null}
 
       <div className="flex items-center gap-3">
         <button

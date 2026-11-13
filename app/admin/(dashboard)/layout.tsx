@@ -24,7 +24,10 @@ export default async function AdminLayout({
     })),
     { href: "/admin/messages", label: "Messages" },
     ...(session.profile.role === "admin"
-      ? [{ href: "/admin/audit", label: "Audit log" }]
+      ? [
+          { href: "/admin/users", label: "Users" },
+          { href: "/admin/audit", label: "Audit log" },
+        ]
       : []),
   ];
 

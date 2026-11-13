@@ -3,16 +3,16 @@ import Link from "next/link";
 import PageBanner from "@/components/PageBanner";
 import PageContent from "@/components/PageContent";
 import { getSitePage } from "@/lib/content";
-import { navItems } from "@/lib/data";
+import { getSiteNav } from "@/lib/nav";
 
 export const metadata: Metadata = {
   title: "Departments - University of Nursing, Mandalay",
 };
 
 export default async function DepartmentsPage() {
-  const doc = await getSitePage("departments");
+  const [doc, menu] = await Promise.all([getSitePage("departments"), getSiteNav()]);
   const departments =
-    navItems.find((item) => item.label === "Departments")?.children ?? [];
+    menu.find((item) => item.label === "Departments")?.children ?? [];
 
   return (
     <>
